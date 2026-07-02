@@ -1,7 +1,3 @@
-import dotenv from "dotenv";
-// Load environment variables immediately before other imports
-dotenv.config();
-
 import express, { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
