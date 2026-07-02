@@ -8,10 +8,9 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import habitsRoutes from "./routes/habits";
 
-// Fast fail if JWT_SECRET is not configured
+// Alert if JWT_SECRET is missing, without killing the Vercel serverless process
 if (!process.env.JWT_SECRET) {
-  console.error("❌ CRITICAL: JWT_SECRET environment variable is not defined!");
-  process.exit(1);
+  console.warn("⚠️ WARNING: JWT_SECRET environment variable is not defined! Auth features will fail.");
 }
 
 const app = express();
@@ -29,8 +28,6 @@ const globalLimiter = rateLimit({
   message: { message: "Too many requests from this IP, please try again after 15 minutes." }
 });
 app.use(globalLimiter);
-
-
 
 // Enable CORS with restricted origin
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -62,12 +59,16 @@ app.get("/", (_req: Request, res: Response) => {
 // Mount Routes
 app.use("/api/habits", habitsRoutes);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`==================================================`);
-  console.log(`🚀 Server running in developer mode on port: ${PORT}`);
-  console.log(`🔗 API Root URL: http://localhost:${PORT}`);
-  console.log(`==================================================`);
-});
+// Only start the standalone listener when running locally.
+// Vercel handles the server execution dynamically via serverless functions.
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`==================================================`);
+    console.log(`🚀 Server running in developer mode on port: ${PORT}`);
+    console.log(`🔗 API Root URL: http://localhost:${PORT}`);
+    console.log(`==================================================`);
+  });
+}
 
+// Crucial for Vercel to import and wrap your Express app
 export default app;
