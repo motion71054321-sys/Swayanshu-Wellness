@@ -1,8 +1,5 @@
 import fs from "fs";
 import path from "path";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const DATA_DIR = path.resolve(process.env.DATA_DIR || "./data");
 
@@ -97,17 +94,17 @@ export const db = {
   // Users Table
   getUsers: (): User[] => readJsonFile<User>("users.json"),
   saveUsers: (users: User[]): void => writeJsonFile<User>("users.json", users),
-  
+
   findUserByEmail: (email: string): User | undefined => {
     const users = db.getUsers();
     return users.find((u) => u.email.toLowerCase() === email.toLowerCase());
   },
-  
+
   findUserById: (id: string): User | undefined => {
     const users = db.getUsers();
     return users.find((u) => u.id === id);
   },
-  
+
   createUser: (user: Omit<User, "id" | "createdAt">): User => {
     const users = db.getUsers();
     const newUser: User = {
@@ -123,19 +120,19 @@ export const db = {
   // Assessments Table
   getAssessments: (): Assessment[] => readJsonFile<Assessment>("assessments.json"),
   saveAssessments: (assessments: Assessment[]): void => writeJsonFile<Assessment>("assessments.json", assessments),
-  
+
   findAssessmentsByUserId: (userId: string): Assessment[] => {
     const assessments = db.getAssessments();
     return assessments.filter((a) => a.userId === userId);
   },
-  
+
   findLatestAssessmentByUserId: (userId: string): Assessment | undefined => {
     const assessments = db.findAssessmentsByUserId(userId);
     if (assessments.length === 0) return undefined;
     // Sort descending by createdAt
     return assessments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
   },
-  
+
   createAssessment: (userId: string, formData: Assessment["formData"], report: Assessment["report"]): Assessment => {
     const assessments = db.getAssessments();
     const newAssessment: Assessment = {
@@ -156,9 +153,9 @@ export const db = {
     const sorted = assessments
       .filter((a) => a.userId === userId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
+
     if (sorted.length === 0) return undefined;
-    
+
     const latest = sorted[0];
     const index = assessments.findIndex((a) => a.id === latest.id);
     if (index !== -1) {
@@ -172,16 +169,16 @@ export const db = {
   // Habits Table
   getHabits: (): HabitRecord[] => readJsonFile<HabitRecord>("habits.json"),
   saveHabits: (records: HabitRecord[]): void => writeJsonFile<HabitRecord>("habits.json", records),
-  
+
   findHabits: (userId: string, date: string): HabitRecord | undefined => {
     const records = db.getHabits();
     return records.find((r) => r.userId === userId && r.date === date);
   },
-  
+
   updateHabits: (userId: string, date: string, habits: HabitItem[]): HabitRecord => {
     const records = db.getHabits();
     const index = records.findIndex((r) => r.userId === userId && r.date === date);
-    
+
     const updatedRecord: HabitRecord = {
       id: index !== -1 ? records[index].id : Math.random().toString(36).substring(2, 11),
       userId,
@@ -189,13 +186,13 @@ export const db = {
       habits,
       updatedAt: new Date().toISOString()
     };
-    
+
     if (index !== -1) {
       records[index] = updatedRecord;
     } else {
       records.push(updatedRecord);
     }
-    
+
     db.saveHabits(records);
     return updatedRecord;
   }
